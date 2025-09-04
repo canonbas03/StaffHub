@@ -16,7 +16,7 @@ namespace StaffHub.Models
         public string LastName { get; set; } = null!;
         [Column(TypeName ="decimal(18,2)")]
         public decimal Salary { get; set; }
-        public int RoleId { get; set; }
-        public virtual Role Role { get; set; } = null!;
+        public int RoleId { get; set; } = 0;
+        public virtual Role? Role { get; set; } = null!;
     }
 }

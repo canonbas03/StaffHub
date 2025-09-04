@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StaffHub.Models
 {
@@ -10,8 +11,9 @@ namespace StaffHub.Models
         [Required]
         [StringLength(50)]
         public string Name { get; set; } = null!;
-        public string DepartmentId { get; set; } = null!;
+        [ForeignKey("Department")]
+        public int DepartmentId { get; set; }
 
-        public virtual Department Department { get; set; } = null!;
+        public virtual Department? Department { get; set; }
     }
 }

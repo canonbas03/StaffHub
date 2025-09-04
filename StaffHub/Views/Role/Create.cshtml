@@ -1,0 +1,20 @@
+﻿@model StaffHub.Models.Role
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<h2>Add a role:</h2>
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="Name">Name:</label>
+        <input asp-for="Name" class="form-control"/>
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="DepartmentId">Department</Label>
+        <select asp-for="DepartmentId" class="form-control" asp-items="@(new SelectList(ViewBag.Departments,"DepartmentId","Name"))">
+            <option value="">-- Select --</option>
+        </select>
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+    </div>
+        <button type="submit">Add Role</button>
+        <button asp-action="List" asp-controller="Employee">Back</button>
+</form>

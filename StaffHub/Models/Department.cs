@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace StaffHub.Models
 {
@@ -9,6 +10,7 @@ namespace StaffHub.Models
         [Required]
         [StringLength(50)]
         public string Name { get; set; } = null!;
+        public ICollection<Role> Roles { get; set; } = new List<Role>();
 
     }
 }
