@@ -43,8 +43,47 @@ namespace StaffHub.Controllers
         [HttpGet]
         public JsonResult GetRolesByDepartment(int id)
         {
-            var roles = _context.Roles.Where(r => r.RoleId == id).Select(r => new {r.RoleId,r.Name}).ToList();
+            var roles = _context.Roles.Where(r => r.RoleId == id).Select(r => new { r.RoleId, r.Name }).ToList();
             return Json(roles);
+        }
+
+        public IActionResult Delete(int id)
+        {
+            var employee = _context.Employees.FirstOrDefault(e => e.EmployeeId == id);
+            if (employee != null)
+            {
+                _context.Employees.Remove(employee);
+                _context.SaveChanges();
+            }
+            return RedirectToAction("List");
+        }
+
+        public IActionResult Edit(int id)
+        {
+            var employee = _context.Employees.Include(e => e.Role).FirstOrDefault(e => e.EmployeeId == id);
+            if(employee == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Departments = _context.Departments.ToList();
+            return View(employee);
+        }
+        [HttpPost]
+        public IActionResult Edit(Employee employee)
+        {
+            if(ModelState.IsValid)
+            {
+                //var emp = _context.Employees.FirstOrDefault(e => e.EmployeeId == employee.EmployeeId);
+                //emp.FirstName = employee.FirstName;
+                //emp.LastName = employee.LastName;
+                //emp.Salary = employee.Salary;
+                //emp.RoleId = employee.RoleId;
+                _context.Update(employee);
+                _context.SaveChanges();
+                return RedirectToAction("List");
+            }
+            ViewBag.Departments = _context.Departments.ToList();
+            return View(employee);
         }
     }
 }

@@ -1,8 +1,41 @@
 ﻿@model IEnumerable<StaffHub.Models.Employee>
 
-    <h1>List of all:</h1>
-    <a asp-action="Add">Add new</a>
-    @foreach(var emp in Model )
+<h1>List of all:</h1>
+<a asp-action="Add">Add new</a>
+<a asp-action="Create" asp-controller="Department">Create a department</a>
+<a asp-action="Create" asp-controller="Role">Create a role</a>
+@foreach (var emp in Model)
 {
-    <p>@emp.FirstName @emp.LastName @emp.Salary @emp.Role.Name @emp.Role.Department.Name</p>
+    <div>
+        <p>@emp.FirstName @emp.LastName @emp.Salary @emp.Role.Name @emp.Role.Department.Name</p>
+        <a asp-action="Delete" asp-route-id="@emp.EmployeeId" class="btn btn-danger" onclick="return confirm('You sure?');">DELETE</a>
+    </div>
 }
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Salary</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var emp in Model)
+        {
+           <tr>
+               <td>@emp.FirstName @emp.LastName</td>
+               <td>@emp.Salary</td>
+               <td>@emp.Role?.Name</td>
+               <td>@emp.Role?.Department?.Name</td>
+               <td>
+                   <a asp-action="Delete" asp-route-id="@emp.EmployeeId" class="btn btn-danger btn-sm" onclick="return confirm('Do you want to delete @emp.FirstName @emp.LastName?');">Delete</a>
+                   <a asp-action="Edit" asp-route-id="@emp.EmployeeId" class="btn btn-outline-success btn-sm">Edit</a>
+               </td>
+           </tr>
+        }
+    </tbody>
+</table>
+
