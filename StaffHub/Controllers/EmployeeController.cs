@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using StaffHub.Data;
 using StaffHub.Models;
 using StaffHub.Models.ViewModels;
+using System.Threading.Tasks;
 
 namespace StaffHub.Controllers
 {
@@ -15,11 +16,13 @@ namespace StaffHub.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public EmployeeController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        private readonly SignInManager<IdentityUser> _signInManager;
+        public EmployeeController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, SignInManager<IdentityUser> signInManager)
         {
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
+            _signInManager = signInManager;
         }
         public IActionResult Index()
         {
@@ -72,24 +75,24 @@ namespace StaffHub.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction("List");
         }
-            //[HttpPost]
-            //public IActionResult Add(Employee employee)
-            //{
-            //    if (ModelState.IsValid)
-            //    {
-            //        _context.Employees.Add(employee);
-            //        _context.SaveChanges();
-            //        return RedirectToAction("List");
-            //    }
-            //    ViewBag.Departments = _context.Departments.ToList();
-            //    return View(employee);
-            //}
-            [HttpGet]
-            public JsonResult GetRolesByDepartment(int id)
-            {
-                var roles = _context.Roles.Where(r => r.RoleId == id).Select(r => new { r.RoleId, r.Name }).ToList();
-                return Json(roles);
-            }
+        //[HttpPost]
+        //public IActionResult Add(Employee employee)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        _context.Employees.Add(employee);
+        //        _context.SaveChanges();
+        //        return RedirectToAction("List");
+        //    }
+        //    ViewBag.Departments = _context.Departments.ToList();
+        //    return View(employee);
+        //}
+        [HttpGet]
+        public JsonResult GetRolesByDepartment(int id)
+        {
+            var roles = _context.Roles.Where(r => r.RoleId == id).Select(r => new { r.RoleId, r.Name }).ToList();
+            return Json(roles);
+        }
 
         public IActionResult Delete(int id)
         {
@@ -102,27 +105,69 @@ namespace StaffHub.Controllers
             return RedirectToAction("List");
         }
 
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            var employee = _context.Employees.Include(e => e.Role).FirstOrDefault(e => e.EmployeeId == id);
+            var employee = _context.Employees.Include(e => e.Role).Include(e => e.IdentityUser).FirstOrDefault(e => e.EmployeeId == id);
             if (employee == null)
             {
                 return NotFound();
             }
+            var roles = await _userManager.GetRolesAsync(employee.IdentityUser!);
+            var permissionRole = roles.FirstOrDefault() ?? "User";
+
+            var vm = new EmployeeCreateVM
+            {
+                EmployeeId = employee.EmployeeId,
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                Salary = employee.Salary,
+                RoleId = employee.RoleId,
+                Email = employee.IdentityUser?.Email,
+                PermissionRole = permissionRole,
+                AvailableRoles = new List<string> { "Admin", "User" }
+            };
+
             ViewBag.Departments = _context.Departments.ToList();
-            return View(employee);
+            return View(vm);
         }
         [HttpPost]
-        public IActionResult Edit(Employee employee)
+        public async Task<IActionResult> Edit(EmployeeCreateVM model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Update(employee);
-                _context.SaveChanges();
-                return RedirectToAction("List");
+                ViewBag.Departments = _context.Departments.ToList();
+                return View(model);
             }
-            ViewBag.Departments = _context.Departments.ToList();
-            return View(employee);
+            var employee = _context.Employees.Include(e => e.IdentityUser).FirstOrDefault(e => e.EmployeeId == model.EmployeeId);
+            if (employee == null) return NotFound();
+            employee.FirstName = model.FirstName;
+            employee.LastName = model.LastName;
+            employee.Salary = model.Salary;
+            employee.RoleId = model.RoleId;
+
+            if (employee.IdentityUser!.Email != model.Email)
+            {
+                employee.IdentityUser!.Email = model.Email;
+                employee.IdentityUser.UserName = model.Email;
+                await _userManager.UpdateAsync(employee.IdentityUser);
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.Password))
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(employee.IdentityUser);
+                await _userManager.ResetPasswordAsync(employee.IdentityUser, token, model.Password);
+            }
+
+            var currentRoles = await _userManager.GetRolesAsync(employee.IdentityUser);
+            if (currentRoles != null)
+            {
+                await _userManager.RemoveFromRolesAsync(employee.IdentityUser, currentRoles);
+            }
+            await _userManager.AddToRoleAsync(employee.IdentityUser, model.PermissionRole);
+            await _signInManager.RefreshSignInAsync(employee.IdentityUser);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("List");
+
         }
 
         public IActionResult Details(int id)
