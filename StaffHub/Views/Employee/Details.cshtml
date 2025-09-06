@@ -1,0 +1,15 @@
+﻿@model StaffHub.Models.Employee
+
+<h1>Details of @Model.FirstName @Model.LastName</h1>
+
+<h2>Name: @Model.FirstName</h2>
+<h2>Last Name: @Model.LastName</h2>
+<h2>Salary: @Model.Salary</h2>
+<h2>Role: @Model.Role.Name</h2>
+<h2>Department: @Model.Role?.Department?.Name</h2>
+
+<button asp-action="Edit" asp-route-id="@Model.EmployeeId" class="btn btn-outline-dark">Edit</button>
+<button asp-action="List" class="btn btn-dark">Back</button>
+
+<a asp-action="Edit" asp-route-id="@Model.EmployeeId" class="btn btn-outline-dark">Edit</a>
+<a asp-action="List" class="btn btn-dark">Back</a>

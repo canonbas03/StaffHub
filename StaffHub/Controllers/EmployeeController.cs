@@ -85,5 +85,15 @@ namespace StaffHub.Controllers
             ViewBag.Departments = _context.Departments.ToList();
             return View(employee);
         }
+
+        public IActionResult Details(int id)
+        {
+            var employee = _context.Employees.Include(e => e.Role).ThenInclude(r => r.Department).FirstOrDefault(e => e.EmployeeId == id);
+            if(employee == null)
+            {
+                return NotFound();
+            }
+            return View(employee);
+        }
     }
 }

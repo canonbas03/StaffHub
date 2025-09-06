@@ -33,6 +33,7 @@
                <td>
                    <a asp-action="Delete" asp-route-id="@emp.EmployeeId" class="btn btn-danger btn-sm" onclick="return confirm('Do you want to delete @emp.FirstName @emp.LastName?');">Delete</a>
                    <a asp-action="Edit" asp-route-id="@emp.EmployeeId" class="btn btn-outline-success btn-sm">Edit</a>
+                   <a asp-action="Details" asp-route-id="@emp.EmployeeId" class="btn btn btn-outline-info">Details</a>
                </td>
            </tr>
         }
