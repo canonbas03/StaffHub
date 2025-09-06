@@ -1,4 +1,4 @@
-﻿@model StaffHub.Models.Employee
+﻿@model StaffHub.Models.ViewModels.EmployeeCreateVM
 
 <h1>Add new employee:</h1>
 <form asp-action="Add" method="post">
@@ -32,6 +32,21 @@
         <h1>Roles</h1>
         <select id="RoleId" name="RoleId" class="form-control">
             <option value="">--Select--</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Email</label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Password</label>
+        <input asp-for="Password" type="password" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Permission Role</label>
+        <select asp-for="PermissionRole" class="form-control">
+            <option value="User">User</option>
+            <option value="Admin">Admin</option>
         </select>
     </div>
     <button type="submit">Save</button>
