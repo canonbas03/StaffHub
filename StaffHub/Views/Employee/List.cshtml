@@ -4,6 +4,10 @@
 <a asp-action="Add">Add new</a>
 <a asp-action="Create" asp-controller="Department">Create a department</a>
 <a asp-action="Create" asp-controller="Role">Create a role</a>
+<form asp-action="List" method="get">
+    <input type="text" name="searchString"/>
+    <button type="submit" class="btn btn-outline-info">Search</button>
+</form>
 @foreach (var emp in Model)
 {
     <div>
@@ -11,7 +15,6 @@
         <a asp-action="Delete" asp-route-id="@emp.EmployeeId" class="btn btn-danger" onclick="return confirm('You sure?');">DELETE</a>
     </div>
 }
-
 <table class="table table-striped">
     <thead>
         <tr>

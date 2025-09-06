@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using StaffHub.Data;
 using StaffHub.Models;
 
@@ -17,9 +18,14 @@ namespace StaffHub.Controllers
             return View();
         }
 
-        public IActionResult List()
+        public IActionResult List(string searchString)
         {
-            var employees = _context.Employees.Include(e => e.Role).ThenInclude(e => e.Department).ToList();
+            var employees = _context.Employees.Include(e => e.Role).ThenInclude(e => e.Department).AsQueryable();
+            if(!searchString.IsNullOrEmpty())
+            {
+                searchString = searchString.ToLower();
+                employees = employees.Where(e => e.FirstName.ToLower().Contains(searchString) || e.LastName.ToLower().Contains(searchString));
+            }
             return View(employees);
         }
 
@@ -73,11 +79,6 @@ namespace StaffHub.Controllers
         {
             if(ModelState.IsValid)
             {
-                //var emp = _context.Employees.FirstOrDefault(e => e.EmployeeId == employee.EmployeeId);
-                //emp.FirstName = employee.FirstName;
-                //emp.LastName = employee.LastName;
-                //emp.Salary = employee.Salary;
-                //emp.RoleId = employee.RoleId;
                 _context.Update(employee);
                 _context.SaveChanges();
                 return RedirectToAction("List");
