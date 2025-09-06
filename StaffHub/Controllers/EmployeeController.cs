@@ -54,10 +54,20 @@ namespace StaffHub.Controllers
                 return View(model);
             }
             var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+            if(string.IsNullOrWhiteSpace(model.Password))
+            {
+                ModelState.AddModelError("Password", "Password is required.");
+                ViewBag.Departments = _context.Departments.ToList();
+                return View(model);
+            }
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (!result.Succeeded)
             {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("Password", error.Description);
+                }
                 ViewBag.Departments = _context.Departments.ToList();
                 return View(model);
             }
@@ -75,18 +85,7 @@ namespace StaffHub.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction("List");
         }
-        //[HttpPost]
-        //public IActionResult Add(Employee employee)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        _context.Employees.Add(employee);
-        //        _context.SaveChanges();
-        //        return RedirectToAction("List");
-        //    }
-        //    ViewBag.Departments = _context.Departments.ToList();
-        //    return View(employee);
-        //}
+
         [HttpGet]
         public JsonResult GetRolesByDepartment(int id)
         {
@@ -94,16 +93,39 @@ namespace StaffHub.Controllers
             return Json(roles);
         }
 
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var employee = _context.Employees.FirstOrDefault(e => e.EmployeeId == id);
-            if (employee != null)
+            // Load the employee including the linked IdentityUser
+            var employee = await _context.Employees
+                .Include(e => e.IdentityUser)
+                .FirstOrDefaultAsync(e => e.EmployeeId == id);
+
+            if (employee == null)
+                return RedirectToAction("List"); // Already gone
+
+            // Delete the IdentityUser first
+            if (employee.IdentityUser != null)
+            {
+                var userResult = await _userManager.DeleteAsync(employee.IdentityUser);
+                if (!userResult.Succeeded)
+                {
+                    // Handle failure (optional)
+                    ModelState.AddModelError("", "Could not delete associated user.");
+                    return RedirectToAction("List");
+                }
+            }
+
+            // Check if Employee still exists (in case cascade delete deleted it)
+            var stillExists = await _context.Employees.AnyAsync(e => e.EmployeeId == id);
+            if (stillExists)
             {
                 _context.Employees.Remove(employee);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
+
             return RedirectToAction("List");
         }
+
 
         public async Task<IActionResult> Edit(int id)
         {

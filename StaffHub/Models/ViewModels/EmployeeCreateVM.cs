@@ -13,6 +13,7 @@ namespace StaffHub.Models.ViewModels
 
         // Identity fields
         public string Email { get; set; } = null!;
+        [Required]
         public string? Password { get; set; } = null!;
         public string PermissionRole { get; set; } = null!;
         public List<string> AvailableRoles { get; set; } = new List<string>();
