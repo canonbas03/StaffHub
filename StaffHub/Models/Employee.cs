@@ -18,5 +18,8 @@ namespace StaffHub.Models
         public decimal Salary { get; set; }
         public int RoleId { get; set; } = 0;
         public virtual Role? Role { get; set; } = null!;
+
+        [Required]
+        public string IdentityUserId { get; set; } = null!;
     }
 }

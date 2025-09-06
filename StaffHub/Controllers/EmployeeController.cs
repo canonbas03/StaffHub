@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StaffHub.Data;
@@ -6,6 +7,7 @@ using StaffHub.Models;
 
 namespace StaffHub.Controllers
 {
+    [Authorize(Roles = "User")]
     public class EmployeeController : Controller
     {
         private readonly ApplicationDbContext _context;
